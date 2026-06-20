@@ -9,6 +9,7 @@ import { signInSchema, type SignInSchema } from "@/features/auth/schemas/sign-in
 import { authApi } from "@/features/auth/api/auth.api";
 import { ApiError } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { GoogleSignInButton } from "@/features/auth/components/google-sign-in-button";
 
 export function SignInForm() {
   const router = useRouter();
@@ -73,6 +74,8 @@ export function SignInForm() {
       <Button type="submit" variant="dark" className="w-full" disabled={isPending}>
         {isPending ? "Signing in…" : "Sign In"}
       </Button>
+
+      <GoogleSignInButton />
     </form>
   );
 }

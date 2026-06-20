@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/features/auth/components/google-sign-in-button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signUpSchema, SignUpSchema } from "@/features/auth/schemas/sign-up.schema";
@@ -74,6 +75,7 @@ export function SignUpForm() {
       <Button variant="primary" className="w-full" disabled={isPending}>
         {isPending ? "Creating account…" : "Create Account"}
       </Button>
+      <GoogleSignInButton />
     </form>
   );
 }

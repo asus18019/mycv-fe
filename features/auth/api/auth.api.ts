@@ -6,4 +6,5 @@ export const authApi = {
   signIn: (data: SignInSchema) => api.post<SignInResponse>("/auth/signin", data),
   signUp: (data: SignUpPayload) => api.post<SignInResponse>("/auth/signup", data),
   signOut: () => api.post("/auth/signout"),
+  getOauthUri: () => api.get<{ uri: string }>("/oauth/google"),
 };
