@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { AuthButtons } from "@/features/auth/components/auth-buttons";
 
 const navLinks = [
   { label: "Search Price", href: "/search" },
@@ -28,14 +28,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/sign-in">
-              <Button variant="secondary" size="md">Sign In</Button>
-            </Link>
-            <Link href="/auth/sign-up">
-              <Button variant="primary" size="md">Sign Up</Button>
-            </Link>
-          </div>
+          <AuthButtons />
         </div>
       </div>
     </header>
