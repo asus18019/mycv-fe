@@ -5,4 +5,5 @@ import type { SignInResponse, SignUpPayload } from "@/features/auth/types";
 export const authApi = {
   signIn: (data: SignInSchema) => api.post<SignInResponse>("/auth/signin", data),
   signUp: (data: SignUpPayload) => api.post<SignInResponse>("/auth/signup", data),
+  signOut: () => api.post("/auth/signout"),
 };

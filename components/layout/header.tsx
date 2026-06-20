@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { AuthButtons } from "@/features/auth/components/auth-buttons";
+import { UserMenu } from "@/features/auth/components/user-menu";
 
 
 const navLinks = [
@@ -33,7 +34,7 @@ export async function Header() {
               </Link>
             ))}
           </nav>
-          <AuthButtons user={user} />
+          {user ? <UserMenu user={user} /> : <AuthButtons />}
         </div>
       </div>
     </header>

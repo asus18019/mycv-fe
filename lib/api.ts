@@ -18,14 +18,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(res.status, `${res.status} ${res.statusText}`);
   }
 
-  return await res.json() as Promise<T>;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 export const api = {
   get: <T>(path: string, init?: RequestInit) =>
     request<T>(path, { ...init, method: "GET" }),
 
-  post: <T>(path: string, body: unknown, init?: RequestInit) =>
+  post: <T>(path: string, body?: unknown, init?: RequestInit) =>
     request<T>(path, { ...init, method: "POST", body: JSON.stringify(body) }),
 
   put: <T>(path: string, body: unknown, init?: RequestInit) =>
