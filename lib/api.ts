@@ -1,3 +1,10 @@
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -7,7 +14,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText}`);
+    throw new ApiError(res.status, `${res.status} ${res.statusText}`);
   }
 
   return await res.json() as Promise<T>;

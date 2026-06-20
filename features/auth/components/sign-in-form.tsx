@@ -2,20 +2,33 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { signInSchema, type SignInSchema } from "@/features/auth/schemas/sign-in.schema";
+import { authApi } from "@/features/auth/api/auth.api";
+import { ApiError } from "@/lib/api";
 
 export function SignInForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignInSchema>({
+  const { register, handleSubmit, formState: { errors }, setError } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: authApi.signIn,
+    onSuccess: () => toast.success("Signed in successfully."),
+    onError: (error) => {
+      if(!(error instanceof ApiError)) return;
+      if(error.status.toString().startsWith("4")) {
+        setError("root", {
+          message: "Invalid email or password."
+        });
+      }
+    },
+  });
+
   function onSubmit(data: SignInSchema) {
-    console.log(data);
+    mutate(data);
   }
 
   return (
@@ -44,12 +57,17 @@ export function SignInForm() {
           <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
         )}
       </div>
+      {errors.root && (
+          <p className="mt-1 text-xs text-red-500">{errors.root.message}</p>
+      )}
       <div className="flex justify-end">
         <button type="button" className="text-xs text-zinc-500 hover:text-zinc-900">
           Forgot password?
         </button>
       </div>
-      <Button type="submit" variant="dark" className="w-full">Sign In</Button>
+      <Button type="submit" variant="dark" className="w-full" disabled={isPending}>
+        {isPending ? "Signing in…" : "Sign In"}
+      </Button>
     </form>
   );
 }
