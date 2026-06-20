@@ -14,7 +14,7 @@ export function AuthButtons() {
 
   const handleSetView = (view: AuthView) => {
     setView(view);
-    router.push(view ? `?auth=${view.toString()}` : "/");
+    router.push(view ? `?auth=${view}` : "/", { scroll: false });
   }
 
   return (
