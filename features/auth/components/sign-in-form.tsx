@@ -8,15 +8,20 @@ import { Button } from "@/components/ui/button";
 import { signInSchema, type SignInSchema } from "@/features/auth/schemas/sign-in.schema";
 import { authApi } from "@/features/auth/api/auth.api";
 import { ApiError } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export function SignInForm() {
+  const router = useRouter();
   const { register, handleSubmit, formState: { errors }, setError } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
 
   const { mutate, isPending } = useMutation({
     mutationFn: authApi.signIn,
-    onSuccess: () => toast.success("Signed in successfully."),
+    onSuccess: () => {
+      toast.success("Signed in successfully.")
+      router.refresh();
+    },
     onError: (error) => {
       if(!(error instanceof ApiError)) return;
       if(error.status.toString().startsWith("4")) {

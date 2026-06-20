@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { AuthButtons } from "@/features/auth/components/auth-buttons";
+
 
 const navLinks = [
   { label: "Search Price", href: "/search" },
@@ -8,7 +10,10 @@ const navLinks = [
   { label: "About", href: "/about" },
 ];
 
-export function Header() {
+export async function Header() {
+  const headersList = await headers();
+  const user = JSON.parse(headersList.get("x-user") ?? "null");
+
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -28,7 +33,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <AuthButtons />
+          <AuthButtons user={user} />
         </div>
       </div>
     </header>

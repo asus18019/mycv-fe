@@ -9,6 +9,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
   });
