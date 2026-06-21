@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { GoogleSignInButton } from "@/features/auth/components/google-sign-in-button";
 import { useForm } from "react-hook-form";
@@ -6,17 +7,20 @@ import { signUpSchema, SignUpSchema } from "@/features/auth/schemas/sign-up.sche
 import type { SignInSchema } from "@/features/auth/schemas/sign-in.schema";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/features/auth/api/auth.api";
-import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 
 export function SignUpForm() {
+  const router = useRouter();
   const { register, handleSubmit, formState: { errors }, setError } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema)
   });
 
   const { mutate, isPending } = useMutation({
     mutationFn: authApi.signUp,
-    onSuccess: () => toast.success("Signed up successfully."),
+    onSuccess: () => {
+      router.push("/dashboard");
+      router.refresh();
+    },
     onError: (error) => {
       if(!(error instanceof ApiError)) return;
       if(error.status.toString().startsWith("4")) {

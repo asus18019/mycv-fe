@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { signInSchema, type SignInSchema } from "@/features/auth/schemas/sign-in.schema";
 import { authApi } from "@/features/auth/api/auth.api";
@@ -20,7 +19,7 @@ export function SignInForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: authApi.signIn,
     onSuccess: () => {
-      toast.success("Signed in successfully.")
+      router.push("/dashboard");
       router.refresh();
     },
     onError: (error) => {
