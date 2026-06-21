@@ -2,22 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canUser, type Pages } from "@/lib/permissions";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
-const navItems = [
-  { label: "Overview", href: "/dashboard/overview", icon: LayoutDashboard },
-  { label: "My Reports", href: "/dashboard/reports", icon: FileText },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+const navItems: { label: string; href: string; icon: LucideIcon; subject: Pages }[] = [
+  { label: "Overview", href: "/dashboard/overview", icon: LayoutDashboard, subject: "OverviewPage" },
+  { label: "My Reports", href: "/dashboard/reports", icon: FileText, subject: "MyReportsPage" },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings, subject: "SettingsPage" },
 ];
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const { user } = useAuthSession();
+
+  const allowedItems = navItems.filter(({ subject }) => canUser(user, "view", subject));
 
   return (
     <nav className="w-44 shrink-0 border-r border-zinc-200 pr-6">
       <ul className="flex flex-col gap-0.5">
-        {navItems.map(({ label, href, icon: Icon }) => (
+        {allowedItems.map(({ label, href, icon: Icon }) => (
           <li key={href}>
             <Link
               href={href}

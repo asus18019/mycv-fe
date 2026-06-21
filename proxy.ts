@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { defineAbilityFor, type Role, type AppAbility } from "@/lib/permissions";
+import { type AppAbility, canUser } from "@/lib/permissions";
+import { User } from "@/features/auth/types";
 
 type Subject = Parameters<AppAbility["can"]>[1];
 
@@ -8,16 +9,18 @@ const protectedRoutes: Record<string, Subject> = {
   "/trends": "TrendsPage",
   "/reports/submit": "SubmitReportPage",
   "/admin": "AdminPage",
-  "/dashboard": "DashboardPage",
+  "/dashboard/overview": "OverviewPage",
+  "/dashboard/reports": "MyReportsPage",
+  "/dashboard/settings": "SettingsPage",
 };
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-async function fetchUser(cookie: string): Promise<unknown | null> {
+async function fetchUser(cookie: string): Promise<User | null> {
   try {
     const res = await fetch(`${API}/auth/whoami`, { headers: { Cookie: cookie } });
     if (!res.ok) return null;
-    return await res.json();
+    return await res.json() as User;
   } catch {
     return null;
   }
@@ -36,23 +39,14 @@ async function refreshTokens(cookie: string): Promise<Response | null> {
   }
 }
 
-function getRole(user: unknown): Role {
-  if (!user) return "guest";
-  // @ts-ignore
-  if (user.admin) return "admin";
-  return "user";
-}
-
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const subject = Object.entries(protectedRoutes).find(
-    ([route]) => pathname === route || pathname.startsWith(route + "/")
-  )?.[1];
+  const subject = protectedRoutes[pathname];
 
   console.log(`[proxy] ${req.method} ${pathname}`);
 
   const cookie = req.headers.get("cookie") ?? "";
-  let user: unknown = null;
+  let user: User | null = null;
   let setCookie: string | null = null;
 
   if (req.cookies.has("accessToken")) {
@@ -67,13 +61,14 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  const role = getRole(user);
-  const ability = defineAbilityFor(role);
-
-  if (subject && !ability.can("view", subject)) {
+  if (subject && !canUser(user, "view", subject)) {
     const url = req.nextUrl.clone();
-    url.pathname = "/";
-    url.searchParams.set("auth", "sign-in");
+    if (!user) {
+      url.pathname = "/";
+      url.searchParams.set("auth", "sign-in");
+    } else {
+      url.pathname = "/forbidden";
+    }
     return NextResponse.redirect(url);
   }
 

@@ -1,15 +1,25 @@
 import { AbilityBuilder, createMongoAbility, type MongoAbility } from "@casl/ability";
+import { User } from "@/features/auth/types";
 
 export const roles = ["guest", "user", "admin"] as const;
 export type Role = (typeof roles)[number];
 
 type Action = "view";
-type Subject = "LandingPage" | "SearchPage" | "TrendsPage" | "SubmitReportPage" | "AdminPage" | "DashboardPage" | "all";
+export type Pages =
+    | "LandingPage"
+    | "SearchPage"
+    | "TrendsPage"
+    | "SubmitReportPage"
+    | "AdminPage"
+    | "OverviewPage"
+    | "MyReportsPage"
+    | "SettingsPage";
+type Subject = Pages | "all";
 
 export type AppAbility = MongoAbility<[Action, Subject]>;
 
 export function defineAbilityFor(role: Role): AppAbility {
-  const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
+  const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
   can("view", "LandingPage");
 
@@ -19,10 +29,15 @@ export function defineAbilityFor(role: Role): AppAbility {
   }
 
   if (role === "user") {
-    can("view", "SearchPage");
-    can("view", "TrendsPage");
-    can("view", "SubmitReportPage");
-    can("view", "DashboardPage");
+    const allowedPages: Pages[] = [
+      "SearchPage",
+      "TrendsPage",
+      "SubmitReportPage",
+      "OverviewPage",
+      "MyReportsPage",
+      "SettingsPage",
+    ];
+    allowedPages.forEach((page) => can("view", page));
   }
 
   if (role === "admin") {
@@ -30,4 +45,16 @@ export function defineAbilityFor(role: Role): AppAbility {
   }
 
   return build();
+}
+
+function getRole(user: User | null): Role {
+  if (!user) return "guest";
+  if (user.admin) return "admin";
+  return "user";
+}
+
+export const canUser = (user: User | null, action: Action, subject: Subject) => {
+  const role = getRole(user);
+  const ability = defineAbilityFor(role);
+  return ability.can(action, subject);
 }
