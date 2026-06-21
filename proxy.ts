@@ -8,6 +8,7 @@ const protectedRoutes: Record<string, Subject> = {
   "/trends": "TrendsPage",
   "/reports/submit": "SubmitReportPage",
   "/admin": "AdminPage",
+  "/dashboard": "DashboardPage",
 };
 
 async function fetchUser(req: NextRequest) {
@@ -37,7 +38,9 @@ function getRole(user: unknown): Role {
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const subject = protectedRoutes[pathname];
+  const subject = Object.entries(protectedRoutes).find(
+    ([route]) => pathname === route || pathname.startsWith(route + "/")
+  )?.[1];
 
   const user = await fetchUser(req);
   const role = getRole(user);

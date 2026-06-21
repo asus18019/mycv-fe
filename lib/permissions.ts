@@ -4,7 +4,7 @@ export const roles = ["guest", "user", "admin"] as const;
 export type Role = (typeof roles)[number];
 
 type Action = "view";
-type Subject = "LandingPage" | "SearchPage" | "TrendsPage" | "SubmitReportPage" | "AdminPage" | "all";
+type Subject = "LandingPage" | "SearchPage" | "TrendsPage" | "SubmitReportPage" | "AdminPage" | "DashboardPage" | "all";
 
 export type AppAbility = MongoAbility<[Action, Subject]>;
 
@@ -22,6 +22,7 @@ export function defineAbilityFor(role: Role): AppAbility {
     can("view", "SearchPage");
     can("view", "TrendsPage");
     can("view", "SubmitReportPage");
+    can("view", "DashboardPage");
   }
 
   if (role === "admin") {
