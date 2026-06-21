@@ -26,7 +26,7 @@ export async function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-base text-zinc-600 hover:text-zinc-900"
+                className="text-sm text-zinc-600 hover:text-zinc-900"
               >
                 {link.label}
               </Link>
