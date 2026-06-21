@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { AuthButtons } from "@/features/auth/components/auth-buttons";
 import { UserMenu } from "@/features/auth/components/user-menu";
-import { getCurrentUser } from "@/lib/get-current-user";
-
+import { getAuthSession } from "@/features/auth/lib/get-auth-session";
 
 const navLinks = [
   { label: "Search Price", href: "/search" },
@@ -13,7 +11,7 @@ const navLinks = [
 ];
 
 export async function Header() {
-  const user = await getCurrentUser();
+  const { isAuthenticated } = await getAuthSession();
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
@@ -34,7 +32,7 @@ export async function Header() {
               </Link>
             ))}
           </nav>
-          {user ? <UserMenu user={user} /> : <AuthButtons />}
+          {isAuthenticated ? <UserMenu /> : <AuthButtons />}
         </div>
       </div>
     </header>

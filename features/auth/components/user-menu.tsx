@@ -12,13 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/features/auth/api/auth.api";
-import { User } from "@/features/auth/types";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { redirect } from "next/navigation";
 
-interface UserMenuProps {
-  user: User;
-}
-
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu() {
+  const { isAuthenticated, user } = useAuthSession();
+  if(!isAuthenticated) redirect("/?auth=sign-in");
   const initials = user.email.slice(0, 2).toUpperCase();
 
   const { mutate, isPending } = useMutation({

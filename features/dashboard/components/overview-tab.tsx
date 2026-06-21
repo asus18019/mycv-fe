@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { FileText, CheckCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getAuthSession } from "@/features/auth/lib/get-auth-session";
 
 const stats = [
   { label: "Reports Submitted", value: "—", icon: FileText },
@@ -11,8 +11,8 @@ const stats = [
 ];
 
 export async function OverviewTab() {
-  const user = await getCurrentUser();
-  if(!user) redirect("/?auth=sign-in");
+  const { isAuthenticated, user } = await getAuthSession();
+  if(!isAuthenticated) redirect("/?auth=sign-in");
   const initials = user.email.slice(0, 2).toUpperCase() ?? "";
 
   return (

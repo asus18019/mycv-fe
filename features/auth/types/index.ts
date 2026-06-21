@@ -9,6 +9,10 @@ export interface User {
   version: number;
 }
 
+export type AuthSession =
+  | { isAuthenticated: true; user: User }
+  | { isAuthenticated: false; user: null };
+
 export interface SignInResponse {
   accessToken: string;
 }

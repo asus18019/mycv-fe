@@ -1,9 +1,9 @@
-import { getCurrentUser } from "@/lib/get-current-user";
+import { getAuthSession } from "@/features/auth/lib/get-auth-session";
 import { redirect } from "next/navigation";
 
 export async function SettingsTab() {
-  const user = await getCurrentUser();
-  if(!user) redirect("/?auth=sign-in");
+  const { isAuthenticated, user } = await getAuthSession();
+  if(!isAuthenticated) redirect("/?auth=sign-in");
 
   return (
     <div className="space-y-8">

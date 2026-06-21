@@ -1,14 +1,14 @@
 import { QueryProvider } from "@/components/query-provider";
-import { UserProvider } from "@/components/user-provider";
-import { getCurrentUser } from "@/lib/get-current-user";
+import { SessionProvider } from "@/components/session-provider";
+import { getAuthSession } from "@/features/auth/lib/get-auth-session";
 
 export async function Providers({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const session = await getAuthSession();
   return (
     <QueryProvider>
-      <UserProvider user={user}>
+      <SessionProvider session={session}>
         {children}
-      </UserProvider>
+      </SessionProvider>
     </QueryProvider>
   );
 }
