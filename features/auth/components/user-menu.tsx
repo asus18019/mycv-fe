@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/features/auth/api/auth.api";
+import { User } from "@/features/auth/types";
 
 interface UserMenuProps {
-  user: any;
+  user: User;
 }
 
 export function UserMenu({ user }: UserMenuProps) {

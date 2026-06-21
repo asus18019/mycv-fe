@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { AuthButtons } from "@/features/auth/components/auth-buttons";
 import { UserMenu } from "@/features/auth/components/user-menu";
+import { getCurrentUser } from "@/lib/get-current-user";
 
 
 const navLinks = [
@@ -12,8 +13,7 @@ const navLinks = [
 ];
 
 export async function Header() {
-  const headersList = await headers();
-  const user = JSON.parse(headersList.get("x-user") ?? "null");
+  const user = await getCurrentUser();
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">

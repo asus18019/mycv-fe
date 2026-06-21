@@ -1,15 +1,10 @@
 import React from "react";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardNav } from "@/features/dashboard/components/dashboard-nav";
+import { getCurrentUser } from "@/lib/get-current-user";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const headersList = await headers();
-  const user = JSON.parse(headersList.get("x-user") ?? "null");
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/?auth=sign-in");

@@ -1,12 +1,14 @@
-"use client";
+import { QueryProvider } from "@/components/query-provider";
+import { UserProvider } from "@/components/user-provider";
+import { getCurrentUser } from "@/lib/get-current-user";
 
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/query-client";
-
-export function Providers({ children }: { children: React.ReactNode }) {
+export async function Providers({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryProvider>
+      <UserProvider user={user}>
+        {children}
+      </UserProvider>
+    </QueryProvider>
   );
 }

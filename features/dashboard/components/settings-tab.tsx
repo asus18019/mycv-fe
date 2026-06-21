@@ -1,10 +1,10 @@
-interface SettingsTabProps {
-  user: {
-    email: string;
-  };
-}
+import { getCurrentUser } from "@/lib/get-current-user";
+import { redirect } from "next/navigation";
 
-export function SettingsTab({ user }: SettingsTabProps) {
+export async function SettingsTab() {
+  const user = await getCurrentUser();
+  if(!user) redirect("/?auth=sign-in");
+
   return (
     <div className="space-y-8">
       <div>

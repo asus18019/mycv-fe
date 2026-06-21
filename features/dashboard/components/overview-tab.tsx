@@ -1,13 +1,8 @@
+import { redirect } from "next/navigation";
+import { FileText, CheckCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { FileText, CheckCircle, Clock } from "lucide-react";
-
-interface OverviewTabProps {
-  user: {
-    email: string;
-    admin?: boolean;
-  };
-}
+import { getCurrentUser } from "@/lib/get-current-user";
 
 const stats = [
   { label: "Reports Submitted", value: "—", icon: FileText },
@@ -15,8 +10,10 @@ const stats = [
   { label: "Pending Review", value: "—", icon: Clock },
 ];
 
-export function OverviewTab({ user }: OverviewTabProps) {
-  const initials = user.email.slice(0, 2).toUpperCase();
+export async function OverviewTab() {
+  const user = await getCurrentUser();
+  if(!user) redirect("/?auth=sign-in");
+  const initials = user.email.slice(0, 2).toUpperCase() ?? "";
 
   return (
     <div className="space-y-8">
