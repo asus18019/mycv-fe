@@ -11,13 +11,11 @@ const protectedRoutes: Record<string, Subject> = {
   "/dashboard": "DashboardPage",
 };
 
-async function fetchUser(req: NextRequest) {
-  if (!req.cookies.has("accessToken")) return null;
+const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+async function fetchUser(cookie: string): Promise<unknown | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/whoami`, {
-      headers: { Cookie: req.headers.get("cookie") ?? "" },
-    });
+    const res = await fetch(`${API}/auth/whoami`, { headers: { Cookie: cookie } });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -25,14 +23,23 @@ async function fetchUser(req: NextRequest) {
   }
 }
 
+async function refreshTokens(cookie: string): Promise<Response | null> {
+  try {
+    const res = await fetch(`${API}/auth/refresh`, {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    if (!res.ok) return null;
+    return res;
+  } catch {
+    return null;
+  }
+}
+
 function getRole(user: unknown): Role {
-  if(!user) {
-    return "guest";
-  }
+  if (!user) return "guest";
   // @ts-ignore
-  if(user.admin) {
-    return "admin";
-  }
+  if (user.admin) return "admin";
   return "user";
 }
 
@@ -42,7 +49,24 @@ export async function proxy(req: NextRequest) {
     ([route]) => pathname === route || pathname.startsWith(route + "/")
   )?.[1];
 
-  const user = await fetchUser(req);
+  console.log(`[proxy] ${req.method} ${pathname}`);
+
+  const cookie = req.headers.get("cookie") ?? "";
+  let user: unknown = null;
+  let setCookie: string | null = null;
+
+  if (req.cookies.has("accessToken")) {
+    user = await fetchUser(cookie);
+  }
+
+  if (!user && req.cookies.has("refreshToken")) {
+    const refreshRes = await refreshTokens(cookie);
+    if (refreshRes) {
+      setCookie = refreshRes.headers.get("set-cookie");
+      user = await fetchUser(setCookie ?? cookie);
+    }
+  }
+
   const role = getRole(user);
   const ability = defineAbilityFor(role);
 
@@ -58,9 +82,15 @@ export async function proxy(req: NextRequest) {
     requestHeaders.set("x-user", JSON.stringify(user));
   }
 
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  if (setCookie) {
+    response.headers.set("set-cookie", setCookie);
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.map$).*)"],
 };
