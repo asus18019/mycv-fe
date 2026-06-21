@@ -40,13 +40,13 @@ export function UserMenu({ user }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-9 cursor-pointer">
-          <AvatarFallback className="bg-amber-100 text-xs font-semibold text-amber-700">
+          <AvatarFallback className="bg-amber-100 text-sm font-semibold text-amber-700">
             {initials}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuLabel className="text-sm font-normal text-zinc-500">
+        <DropdownMenuLabel className="text-sm font-medium text-zinc-800">
           {user.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
