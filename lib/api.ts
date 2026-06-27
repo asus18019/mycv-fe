@@ -8,17 +8,14 @@ export class ApiError extends Error {
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...init?.headers },
-    ...init,
-  });
+  const reqOptions = await buildReqOptions(init);
+  const response = await fetch(`${BASE_URL}${path}`, reqOptions);
 
-  if (!res.ok) {
-    throw new ApiError(res.status, `${res.status} ${res.statusText}`);
+  if (!response.ok) {
+    throw new ApiError(response.status, `${response.status} ${response.statusText}`);
   }
 
-  const text = await res.text();
+  const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
@@ -35,3 +32,33 @@ export const api = {
   delete: <T>(path: string, init?: RequestInit) =>
     request<T>(path, { ...init, method: "DELETE" }),
 };
+
+async function buildReqOptions (init?: RequestInit) {
+  let options: RequestInit = {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  };
+
+  // forward cookies from the incoming request when running on the server
+  if(typeof window === "undefined") {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    options.headers = {
+      ...options.headers,
+      Cookie: cookieStore.toString()
+    }
+  }
+
+  if(init?.headers) {
+    options.headers = {
+      ...options.headers,
+      ...init?.headers
+    }
+  }
+
+  options = {
+    ...options,
+    ...init
+  }
+  return options;
+}

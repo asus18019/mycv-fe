@@ -3,17 +3,19 @@ import { FileText, CheckCircle, Clock } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAuthSession } from "@/features/auth/lib/get-auth-session";
-
-const stats = [
-  { label: "Reports Submitted", value: "—", icon: FileText },
-  { label: "Approved", value: "—", icon: CheckCircle },
-  { label: "Pending Review", value: "—", icon: Clock },
-];
+import { dashboardApi } from "@/features/dashboard/api/dashboard.api";
 
 export async function OverviewTab() {
   const { isAuthenticated, user } = await getAuthSession();
   if(!isAuthenticated) redirect("/?auth=sign-in");
   const initials = user.email.slice(0, 2).toUpperCase() ?? "";
+
+  const data = await dashboardApi.getStats();
+  const stats = [
+    { label: "Reports Submitted", value: data.total, icon: FileText },
+    { label: "Approved", value: data.approved, icon: CheckCircle },
+    { label: "Pending Review", value: data.pending, icon: Clock },
+  ];
 
   return (
     <div className="space-y-8">
