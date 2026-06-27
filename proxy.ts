@@ -43,8 +43,6 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const subject = protectedRoutes[pathname];
 
-  console.log(`[proxy] ${req.method} ${pathname}`);
-
   const cookie = req.headers.get("cookie") ?? "";
   let user: User | null = null;
   let setCookie: string | null = null;
@@ -61,18 +59,20 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  if (subject && !canUser(user, "view", subject)) {
-    const url = req.nextUrl.clone();
-    if (!user) {
+  const requestHeaders = new Headers(req.headers);
+
+  if (subject) {
+    if(!user) {
+      const url = req.nextUrl.clone();
       url.pathname = "/";
       url.searchParams.set("auth", "sign-in");
-    } else {
-      url.pathname = "/forbidden";
+      return NextResponse.redirect(url);
     }
-    return NextResponse.redirect(url);
+    if(!canUser(user, "view", subject)) {
+      requestHeaders.set("x-forbidden", "true");
+    }
   }
 
-  const requestHeaders = new Headers(req.headers);
   if (user) {
     requestHeaders.set("x-user", JSON.stringify(user));
   }

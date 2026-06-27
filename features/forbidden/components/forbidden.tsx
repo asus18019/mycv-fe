@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { BackButton } from "./back-button";
+import { BackButton } from "@/features/forbidden/components/back-button";
 
-export const metadata: Metadata = {
-  title: "Access Denied — DealSense",
-};
-
-export default function ForbiddenPage() {
+export default function Forbidden() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col items-center justify-center px-6 py-32 text-center">
       <p className="text-sm font-medium uppercase tracking-widest text-zinc-400">403</p>
