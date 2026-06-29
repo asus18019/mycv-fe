@@ -4,6 +4,11 @@ export interface StatsResponse {
   pending: number;
 }
 
+export interface GetReportsResponse {
+  reports: Report[];
+  total: number;
+}
+
 export interface Report {
   id: number;
   approved: boolean | null;
@@ -16,4 +21,8 @@ export interface Report {
   mileage: number;
   userId: string;
   createdAt: string;
+  user: {
+    id: string;
+    email: string;
+  }
 }

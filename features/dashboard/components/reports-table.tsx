@@ -2,11 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ColumnDef,
-  ColumnFiltersState,
   getCoreRowModel,
-  getFilteredRowModel, getPaginationRowModel, getSortedRowModel, HeaderContext, PaginationState,
+  HeaderContext,
+  PaginationState,
   SortingState
 } from "@tanstack/table-core";
 import { ArrowUp, CheckCircle, Clock, XCircle, Plus } from "lucide-react";
@@ -23,29 +24,36 @@ import { Input } from "@/components/ui/input"
 import { DataTablePagination } from "@/features/dashboard/components/data-table-pagination";
 import { Report } from "../types";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, debounce } from "@/lib/utils";
+import { DEFAULT_REPOTS_PER_PAGE } from "@/features/dashboard/constants";
 
 const createHeader = (title: string) => {
   return ({ column }: HeaderContext<Report, unknown>) => {
     return (
-      <Button
-        variant="ghost"
-        className="size-auto px-2"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        {title}
-        <ArrowUp className={cn("ml-2 h-4 w-4 transition duration-150 ease-in-out", (column.getIsSorted() === "desc") && "rotate-180")} />
-      </Button>
+      <div className="flex items-center gap-1 w-full">
+        <span>{title}</span>
+        <Button
+          variant="ghost"
+          className="size-auto p-1"
+          onClick={() => column.toggleSorting()}
+        >
+          <ArrowUp className={cn(
+              "h-4 w-4 transition duration-150 ease-in-out",
+              column.getIsSorted() && "text-blue-600",
+              (column.getIsSorted() === "desc") && "rotate-180"
+            )} />
+        </Button>
+      </div>
     );
   }
 }
 
 const columns: ColumnDef<Report>[] = [
-  { accessorKey: "id", header: createHeader("ID") },
-  { accessorKey: "make", header: createHeader("Make") },
-  { accessorKey: "model", header: createHeader("Model") },
-  { accessorKey: "year", header: createHeader("Year") },
-  { accessorKey: "mileage", header: createHeader("Mileage") },
+  { accessorKey: "id", header: createHeader("ID"), size: 80 },
+  { accessorKey: "make", header: createHeader("Make"), size: 140 },
+  { accessorKey: "model", header: createHeader("Model"), size: 140 },
+  { accessorKey: "year", header: createHeader("Year"), size: 100 },
+  { accessorKey: "mileage", header: createHeader("Mileage"), size: 120 },
   {
     accessorKey: "approved",
     header: createHeader("Status"),
@@ -60,7 +68,7 @@ const columns: ColumnDef<Report>[] = [
       if (approved === false) return (
         <div className="flex gap-2 items-center">
           <XCircle className="size-4 text-red-400" />
-          <span>Not Approved</span>
+          <span>Rejected</span>
         </div>
       );
       return (
@@ -71,41 +79,77 @@ const columns: ColumnDef<Report>[] = [
       );
     },
   },
+  {
+    accessorKey: "createdAt",
+    header: createHeader("Created"),
+    size: 160,
+    cell: ({ getValue }) => {
+      const createdAt = getValue<string>();
+      return new Date(createdAt).toLocaleString("en-US");
+    }
+  },
 ];
+
+type QueryFields = "page" | "search" | "sort" | "pageSize";
 
 interface ReportsTableProps {
   reports: Report[]
+  total: number,
 }
 
-export function ReportsTable({ reports }: ReportsTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 5,
-  });
+export function ReportsTable({ reports, total }: ReportsTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const totalRows = reports.length;
+  const sortParam = searchParams.get("sort");
+  const sorting: SortingState = sortParam
+    ? [{ id: sortParam.split(":")[0], desc: sortParam.split(":")[1] === "desc" }]
+    : [];
+  const pagination: PaginationState = {
+    pageIndex: Number(searchParams.get("page") ?? 1) - 1,
+    pageSize: Number(searchParams.get("pageSize") ?? DEFAULT_REPOTS_PER_PAGE),
+  };
 
   const table = useReactTable({
     data: reports,
     columns,
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    rowCount: totalRows,
+    manualSorting: true,
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      const sort = next.length ? `${next[0].id}:${next[0].desc ? "desc" : "asc"}` : "";
+      syncQueryField({ sort });
+    },
+    manualPagination: true,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === "function" ? updater(pagination) : updater;
+      const pageSizeChanged = next.pageSize !== pagination.pageSize;
+      syncQueryField({
+        page: pageSizeChanged ? "1" : String(next.pageIndex + 1),
+        pageSize: String(next.pageSize),
+      });
+    },
+    rowCount: total,
     state: {
       pagination,
       sorting,
-      columnFilters
-    }
+    },
   });
+
+  const updateParams = (updates: Partial<Record<QueryFields, string>>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [field, value] of Object.entries(updates)) {
+      if (value) params.set(field, value);
+      else params.delete(field);
+    }
+    router.replace(`?${params}`);
+  };
+
+  const updateParamsDebounced = React.useCallback(debounce(updateParams, 1000), []);
+
+  const syncQueryField = (updates: Partial<Record<QueryFields, string>>, withDebounce = false) => {
+    withDebounce ? updateParamsDebounced(updates) : updateParams(updates);
+  };
 
   return (
     <div>
@@ -113,10 +157,8 @@ export function ReportsTable({ reports }: ReportsTableProps) {
         <div className="w-full flex justify-between">
           <Input
             placeholder="Find your report..."
-            value={(table.getColumn("make")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-                table.getColumn("make")?.setFilterValue(event.target.value)
-            }
+            defaultValue={searchParams.get("search") ?? ""}
+            onChange={(event) => syncQueryField({ search: event.target.value, page: "1" }, true)}
             className="max-w-sm"
           />
           <Link
@@ -133,7 +175,7 @@ export function ReportsTable({ reports }: ReportsTableProps) {
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead key={header.id} style={{ width: header.getSize() }}>
                   {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
