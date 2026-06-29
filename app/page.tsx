@@ -75,7 +75,7 @@ export default function Home() {
                 <Button variant="primary">Search a price</Button>
               </Link>
               <Link href="/reports/submit">
-                <Button variant="outline">Submit a sale</Button>
+                <Button className="text-white" variant="outline">Submit a sale</Button>
               </Link>
             </div>
             <div className="mt-14 flex gap-10">
