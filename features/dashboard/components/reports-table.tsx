@@ -10,7 +10,7 @@ import {
   PaginationState,
   SortingState
 } from "@tanstack/table-core";
-import { ArrowUp, CheckCircle, Clock, XCircle, Plus } from "lucide-react";
+import { ArrowUp, CheckCircle, Clock, XCircle, Plus, SearchX } from "lucide-react";
 import { flexRender, useReactTable } from "@tanstack/react-table";
 import {
   Table,
@@ -95,9 +95,10 @@ type QueryFields = "page" | "search" | "sort" | "pageSize";
 interface ReportsTableProps {
   reports: Report[]
   total: number,
+  unfilteredTotal: number,
 }
 
-export function ReportsTable({ reports, total }: ReportsTableProps) {
+export function ReportsTable({ reports, total, unfilteredTotal }: ReportsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -136,6 +137,8 @@ export function ReportsTable({ reports, total }: ReportsTableProps) {
     },
   });
 
+  const searchValue = searchParams.get("search") ?? "";
+
   const updateParams = (updates: Partial<Record<QueryFields, string>>) => {
     const params = new URLSearchParams(searchParams.toString());
     for (const [field, value] of Object.entries(updates)) {
@@ -157,8 +160,14 @@ export function ReportsTable({ reports, total }: ReportsTableProps) {
         <div className="w-full flex justify-between">
           <Input
             placeholder="Find your report..."
-            defaultValue={searchParams.get("search") ?? ""}
+            defaultValue={searchValue}
             onChange={(event) => syncQueryField({ search: event.target.value, page: "1" }, true)}
+            onKeyDown={(event) => {
+              const currentValue = event.currentTarget.value;
+              if(event.key === "Enter" && searchValue !== currentValue) {
+                syncQueryField({ search: currentValue, page: "1" }, false)
+              }
+            }}
             className="max-w-sm"
           />
           <Link
@@ -197,14 +206,22 @@ export function ReportsTable({ reports, total }: ReportsTableProps) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+              <TableCell colSpan={columns.length} className="h-32 text-center">
+                <div className="flex flex-col items-center justify-center gap-2 text-zinc-400">
+                  <SearchX className="size-6" />
+                  <span>No reports found. Try adjusting your search.</span>
+                </div>
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-      <DataTablePagination table={table} />
+      <div className="flex items-center my-3">
+        <span className="flex-1 text-sm text-muted-foreground">
+          {total} {"of"} {unfilteredTotal} {"reports match your filters"}
+        </span>
+        <DataTablePagination table={table} />
+      </div>
     </div>
   );
 }

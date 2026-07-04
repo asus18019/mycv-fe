@@ -7,6 +7,7 @@ export interface StatsResponse {
 export interface GetReportsResponse {
   reports: Report[];
   total: number;
+  unfilteredTotal: number;
 }
 
 export interface Report {

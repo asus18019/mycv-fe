@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 
-export function EmptyReports() {
+export function NoReportsFound() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 py-16 text-center">
       <FileText className="mb-3 size-8 text-zinc-300" />
