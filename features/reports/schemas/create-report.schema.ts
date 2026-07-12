@@ -18,11 +18,11 @@ export const createReportSchema = z.object({
     .min(0, "Mileage cannot be negative")
     .max(5_000_000, "Mileage must be at most 5,000,000"),
   lat: z
-    .number("Latitude is required")
+    .number("Location is required")
     .min(-90, "Latitude must be between -90 and 90")
     .max(90, "Latitude must be between -90 and 90"),
   lng: z
-    .number("Longitude is required")
+    .number("Location is required")
     .min(-180, "Longitude must be between -180 and 180")
     .max(180, "Longitude must be between -180 and 180"),
   consent: z
