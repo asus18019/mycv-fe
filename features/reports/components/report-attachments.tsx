@@ -1,27 +1,15 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useEffectEvent, useImperativeHandle, useState } from "react";
 import { Check, FileText, Upload, X } from "lucide-react";
 import Uppy from "@uppy/core";
 import AwsS3Multipart from "@uppy/aws-s3";
 import { UppyContextProvider, useDropzone, useFileInput, useUppyEvent, useUppyState } from "@uppy/react";
 import { reportsApi } from "@/features/reports/api/reports.api";
+import { formatFileSize } from "@/lib/format";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_NUMBER_OF_FILES = 5;
-
-function formatFileSize(bytes: number | null): string {
-  if (bytes === null) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  return `${value.toFixed(1)} ${units[unitIndex]}`;
-}
 
 function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
   const { getRootProps, getInputProps } = useDropzone();
@@ -56,14 +44,12 @@ function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
     });
   });
 
-  const previewUrlsRef = useRef(previewUrls);
-  useEffect(() => {
-    previewUrlsRef.current = previewUrls;
+  // release object URLs to avoid leaking memory
+  const revokePreviewUrls = useEffectEvent(() => {
+    Object.values(previewUrls).forEach((url) => URL.revokeObjectURL(url));
   });
   useEffect(() => {
-    return () => {
-      Object.values(previewUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
-    };
+    return () => revokePreviewUrls();
   }, []);
 
   return (
