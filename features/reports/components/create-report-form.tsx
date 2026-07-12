@@ -313,6 +313,25 @@ export function CreateReportForm() {
         {errors.attachmentCount && <p className={errorClass}>{errors.attachmentCount.message}</p>}
       </FormSection>
 
+      <FormSection
+        title="Additional information"
+        description="Anything else worth noting about the sale, e.g. accident history or recent repairs."
+      >
+        <div>
+          <label htmlFor="additionalInfo" className={labelClass}>
+            Additional information
+          </label>
+          <textarea
+            id="additionalInfo"
+            rows={4}
+            placeholder="e.g. single-owner vehicle, sold due to relocation, no accident history"
+            {...register("additionalInfo")}
+            className={cn(inputClass, "resize-none")}
+          />
+          {errors.additionalInfo && <p className={errorClass}>{errors.additionalInfo.message}</p>}
+        </div>
+      </FormSection>
+
       <div className="py-6">
         <label className="flex cursor-pointer items-start gap-2.5 text-sm text-zinc-600">
           <input

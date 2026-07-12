@@ -31,6 +31,10 @@ export const createReportSchema = z.object({
   attachmentCount: z
     .number()
     .min(1, "Attach at least one photo or document to submit a report"),
+  additionalInfo: z
+    .string()
+    .max(1000, "Additional information must be at most 1,000 characters")
+    .optional(),
 });
 
 export type CreateReportSchema = z.infer<typeof createReportSchema>;
