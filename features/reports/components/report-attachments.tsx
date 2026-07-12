@@ -11,7 +11,7 @@ import { formatFileSize } from "@/lib/format";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_NUMBER_OF_FILES = 5;
 
-function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
+function AttachmentsDropzone({ uppy, invalid }: { uppy: Uppy; invalid?: boolean }) {
   const { getRootProps, getInputProps } = useDropzone();
   const { getInputProps: getFileInputProps, getButtonProps } = useFileInput();
   const files = useUppyState(uppy, (state) => Object.values(state.files));
@@ -56,9 +56,10 @@ function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
     <div className="space-y-3">
       <div
         {...getRootProps()}
-        className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-zinc-300 px-4 py-8 text-center hover:border-zinc-400 hover:bg-zinc-50"
+        aria-invalid={invalid}
+        className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-zinc-300 px-4 py-8 text-center hover:border-zinc-300 hover:bg-zinc-50 aria-invalid:border-red-500"
       >
-        <Upload className="mb-2 size-5 text-zinc-300" />
+        <Upload className="mb-2 size-5 text-zinc-300 aria-invalid:text-red-400" aria-invalid={invalid} />
         <p className="text-sm text-zinc-500">
           Drag files here, or{" "}
           <button
@@ -151,10 +152,11 @@ function createUppy() {
 
 interface ReportAttachmentsProps {
   onFileCountChange?: (count: number) => void;
+  invalid?: boolean;
 }
 
 export const ReportAttachments = forwardRef<ReportAttachmentsHandle, ReportAttachmentsProps>(function ReportAttachments(
-  { onFileCountChange },
+  { onFileCountChange, invalid },
   ref
 ) {
   const [uppy] = useState(createUppy);
@@ -216,7 +218,7 @@ export const ReportAttachments = forwardRef<ReportAttachmentsHandle, ReportAttac
 
   return (
     <UppyContextProvider uppy={uppy}>
-      <AttachmentsDropzone uppy={uppy} />
+      <AttachmentsDropzone uppy={uppy} invalid={invalid} />
     </UppyContextProvider>
   );
 });

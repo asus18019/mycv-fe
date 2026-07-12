@@ -16,8 +16,8 @@ import { LocationPicker } from "@/features/reports/components/location-picker";
 import { ReportAttachments, type ReportAttachmentsHandle } from "@/features/reports/components/report-attachments";
 import { ReportSubmitted } from "@/features/reports/components/report-submitted";
 
-const inputClass =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500";
+const invalidBorderClass = "aria-invalid:border-red-400 aria-invalid:focus:border-red-500";
+const inputClass = `w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 ${invalidBorderClass}`;
 const labelClass = "mb-1.5 block text-sm font-medium text-zinc-700";
 const hintClass = "mt-1.5 text-xs text-zinc-400";
 const errorClass = "mt-1.5 text-xs text-red-500";
@@ -150,6 +150,7 @@ export function CreateReportForm() {
               id="make"
               type="text"
               placeholder="Toyota"
+              aria-invalid={!!errors.make}
               {...register("make")}
               className={inputClass}
             />
@@ -161,6 +162,7 @@ export function CreateReportForm() {
               id="model"
               type="text"
               placeholder="Camry"
+              aria-invalid={!!errors.model}
               {...register("model")}
               className={inputClass}
             />
@@ -174,6 +176,7 @@ export function CreateReportForm() {
               id="year"
               type="number"
               placeholder="2019"
+              aria-invalid={!!errors.year}
               {...register("year", { valueAsNumber: true })}
               className={inputClass}
             />
@@ -191,6 +194,7 @@ export function CreateReportForm() {
                     type="text"
                     inputMode="numeric"
                     placeholder="85,000"
+                    aria-invalid={!!errors.mileage}
                     value={formatDigits(field.value)}
                     onChange={(e) => field.onChange(parseDigits(e.target.value))}
                     onBlur={field.onBlur}
@@ -226,6 +230,7 @@ export function CreateReportForm() {
                   type="text"
                   inputMode="numeric"
                   placeholder="18,400"
+                  aria-invalid={!!errors.price}
                   value={formatDigits(field.value)}
                   onChange={(e) => field.onChange(parseDigits(e.target.value))}
                   onBlur={field.onBlur}
@@ -280,8 +285,12 @@ export function CreateReportForm() {
               type="number"
               step="any"
               placeholder="30.2672"
+              aria-invalid={!!errors.lat}
               {...register("lat", { valueAsNumber: true })}
-              className="w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400"
+              className={cn(
+                "w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400",
+                invalidBorderClass
+              )}
             />
           </div>
           <div className="flex items-center gap-1.5">
@@ -291,8 +300,12 @@ export function CreateReportForm() {
               type="number"
               step="any"
               placeholder="-97.7431"
+              aria-invalid={!!errors.lng}
               {...register("lng", { valueAsNumber: true })}
-              className="w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400"
+              className={cn(
+                "w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400",
+                invalidBorderClass
+              )}
             />
           </div>
         </div>
@@ -309,6 +322,7 @@ export function CreateReportForm() {
           key={attachmentsKey}
           ref={attachmentsRef}
           onFileCountChange={handleFileCountChange}
+          invalid={!!errors.attachmentCount}
         />
         {errors.attachmentCount && <p className={errorClass}>{errors.attachmentCount.message}</p>}
       </FormSection>
@@ -325,6 +339,7 @@ export function CreateReportForm() {
             id="additionalInfo"
             rows={4}
             placeholder="e.g. single-owner vehicle, sold due to relocation, no accident history"
+            aria-invalid={!!errors.additionalInfo}
             {...register("additionalInfo")}
             className={cn(inputClass, "resize-none")}
           />
