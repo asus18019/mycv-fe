@@ -11,3 +11,15 @@ export interface CreateReportResponse {
   userId: string;
   createdAt: string;
 }
+
+export interface UploadUrlRequest {
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
+export interface UploadUrlResponse {
+  id: number;
+  key: string;
+  uploadUrl: string;
+}

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { FileText, Upload, X } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Check, FileText, Upload, X } from "lucide-react";
 import Uppy from "@uppy/core";
+import AwsS3Multipart from "@uppy/aws-s3";
 import { UppyContextProvider, useDropzone, useFileInput, useUppyEvent, useUppyState } from "@uppy/react";
+import { reportsApi } from "@/features/reports/api/reports.api";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_NUMBER_OF_FILES = 5;
@@ -94,20 +96,36 @@ function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
           {files.map((file) => (
             <li key={file.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <div className="flex min-w-0 items-center gap-3">
-                {previewUrls[file.id] ? (
-                  <img
-                    src={previewUrls[file.id]}
-                    alt=""
-                    className="size-10 shrink-0 rounded object-cover"
-                  />
-                ) : (
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded bg-zinc-100 text-zinc-400">
-                    <FileText className="size-4" />
-                  </div>
-                )}
-                <div className="min-w-0">
+                <div className="relative shrink-0">
+                  {previewUrls[file.id] ? (
+                    <img
+                      src={previewUrls[file.id]}
+                      alt=""
+                      className="size-10 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-10 items-center justify-center rounded bg-zinc-100 text-zinc-400">
+                      <FileText className="size-4" />
+                    </div>
+                  )}
+                  {file.progress.uploadComplete && (
+                    <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white">
+                      <Check className="size-2.5 text-white" strokeWidth={3} />
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-zinc-700">{file.name}</p>
                   <p className="text-xs text-zinc-400">{formatFileSize(file.size)}</p>
+                  {file.progress.uploadStarted && !file.progress.uploadComplete && (
+                    <div className="mt-1.5 h-1 max-w-48 overflow-hidden rounded-full bg-zinc-100">
+                      <div
+                        className="h-full bg-zinc-900"
+                        style={{ width: `${file.progress.percentage ?? 0}%` }}
+                      />
+                    </div>
+                  )}
+                  {file.error && <p className="mt-1 text-xs text-red-500">{file.error}</p>}
                 </div>
               </div>
               <button
@@ -125,19 +143,61 @@ function AttachmentsDropzone({ uppy }: { uppy: Uppy }) {
   );
 }
 
-export function ReportAttachments() {
-  const [uppy] = useState(() =>
-    new Uppy({
-      restrictions: {
-        maxFileSize: MAX_FILE_SIZE,
-        maxNumberOfFiles: MAX_NUMBER_OF_FILES,
-        allowedFileTypes: ["image/*", ".pdf"],
+export interface ReportAttachmentsHandle {
+  upload: (reportId: number) => Promise<void>;
+}
+
+function createUppy() {
+  return new Uppy({
+    restrictions: {
+      maxFileSize: MAX_FILE_SIZE,
+      maxNumberOfFiles: MAX_NUMBER_OF_FILES,
+      allowedFileTypes: ["image/*", ".pdf"],
+    },
+    autoProceed: false,
+  }).use(AwsS3Multipart, {
+    shouldUseMultipart: false,
+    getUploadParameters: () => {
+      throw new Error("Upload target requested before it was configured.");
+    },
+  });
+}
+
+export const ReportAttachments = forwardRef<ReportAttachmentsHandle>(function ReportAttachments(_props, ref) {
+  const [uppy] = useState(createUppy);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      upload: async (reportId: number) => {
+        const pendingFiles = uppy.getFiles();
+        if (pendingFiles.length === 0) return;
+
+        const uploadTargets = await reportsApi.getUploadUrls(
+          reportId,
+          pendingFiles.map((file) => ({
+            filename: file.name,
+            contentType: file.type,
+            size: file.size ?? 0,
+          }))
+        );
+        const targetByFileId = new Map(pendingFiles.map((file, index) => [file.id, uploadTargets[index]]));
+
+        uppy.getPlugin("AwsS3Multipart")?.setOptions({
+          getUploadParameters: (file) => {
+            const target = targetByFileId.get(file.id);
+            if (!target) throw new Error(`No upload URL for file "${file.name}".`);
+            return {
+              method: "PUT",
+              url: target.uploadUrl,
+            };
+          },
+        });
+
+        await uppy.upload();
       },
-      autoProceed: false,
-    })
-    // TODO: add an upload plugin (e.g. @uppy/xhr-upload) once the backend
-    // exposes an attachment upload endpoint for reports, then call
-    // uppy.upload() after the report is created.
+    }),
+    [uppy]
   );
 
   return (
@@ -145,4 +205,4 @@ export function ReportAttachments() {
       <AttachmentsDropzone uppy={uppy} />
     </UppyContextProvider>
   );
-}
+});

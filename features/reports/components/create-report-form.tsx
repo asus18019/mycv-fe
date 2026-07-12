@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +13,8 @@ import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatDigits, parseDigits } from "@/lib/format";
 import { LocationPicker } from "@/features/reports/components/location-picker";
-import { ReportAttachments } from "@/features/reports/components/report-attachments";
+import { ReportAttachments, type ReportAttachmentsHandle } from "@/features/reports/components/report-attachments";
+import { ReportSubmitted } from "@/features/reports/components/report-submitted";
 
 const inputClass =
   "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500";
@@ -46,15 +46,19 @@ function FormSection({
 }
 
 export function CreateReportForm() {
-  const router = useRouter();
   const [locating, setLocating] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [attachmentsKey, setAttachmentsKey] = useState(0);
+  const attachmentsRef = useRef<ReportAttachmentsHandle>(null);
   const {
     register,
     control,
     handleSubmit,
     setValue,
     setError,
+    reset,
     formState: { errors },
   } = useForm<CreateReportSchema>({
     resolver: zodResolver(createReportSchema),
@@ -64,10 +68,16 @@ export function CreateReportForm() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: reportsApi.create,
-    onSuccess: () => {
-      toast.success("Report submitted for review.");
-      router.push("/dashboard/reports");
-      router.refresh();
+    onSuccess: async (data) => {
+      setUploadingAttachments(true);
+      try {
+        await attachmentsRef.current?.upload(data.id);
+      } catch {
+        toast.error("Report submitted, but attachments failed to upload.");
+      } finally {
+        setUploadingAttachments(false);
+      }
+      setSubmitted(true);
     },
     onError: (error) => {
       if (!(error instanceof ApiError)) return;
@@ -79,9 +89,17 @@ export function CreateReportForm() {
     },
   });
 
+  const isSubmitting = isPending || uploadingAttachments;
+
   function onSubmit(data: CreateReportSchema) {
-    console.log(data);
-    // mutate(data);
+    mutate(data);
+  }
+
+  function handleSubmitAnother() {
+    reset();
+    setMapExpanded(false);
+    setAttachmentsKey((key) => key + 1);
+    setSubmitted(false);
   }
 
   function handleLocationChange(newLat: number, newLng: number) {
@@ -106,6 +124,10 @@ export function CreateReportForm() {
         setLocating(false);
       }
     );
+  }
+
+  if (submitted) {
+    return <ReportSubmitted onSubmitAnother={handleSubmitAnother} />;
   }
 
   const locationPicker = (
@@ -272,19 +294,25 @@ export function CreateReportForm() {
         title="Attachments"
         description="Optional photos or documents that support the sale price, like a bill of sale or odometer photo."
       >
-        <ReportAttachments />
+        <ReportAttachments key={attachmentsKey} ref={attachmentsRef} />
       </FormSection>
 
       <div className="flex items-center justify-between py-6">
         <div>{errors.root && <p className={errorClass}>{errors.root.message}</p>}</div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/reports">
-            <Button type="button" variant="secondary">
+          {isSubmitting ? (
+            <Button type="button" variant="secondary" disabled>
               Cancel
             </Button>
-          </Link>
-          <Button type="submit" variant="dark" disabled={isPending}>
-            {isPending ? "Submitting…" : "Submit report"}
+          ) : (
+            <Link href="/dashboard/reports">
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
+            </Link>
+          )}
+          <Button type="submit" variant="dark" disabled={isSubmitting}>
+            {isPending ? "Submitting…" : uploadingAttachments ? "Uploading attachments…" : "Submit report"}
           </Button>
         </div>
       </div>
