@@ -25,6 +25,9 @@ export const createReportSchema = z.object({
     .number("Longitude is required")
     .min(-180, "Longitude must be between -180 and 180")
     .max(180, "Longitude must be between -180 and 180"),
+  consent: z
+    .boolean()
+    .refine((value) => value, "You must consent to data processing to submit a report"),
 });
 
 export type CreateReportSchema = z.infer<typeof createReportSchema>;

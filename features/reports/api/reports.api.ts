@@ -8,7 +8,7 @@ import type {
 } from "@/features/reports/types";
 
 export const reportsApi = {
-  create: (data: CreateReportSchema) =>
+  create: (data: Omit<CreateReportSchema, "consent">) =>
     api.post<CreateReportResponse>("/reports", data),
   getUploadUrls: (reportId: number, files: UploadUrlRequest[]) =>
     api.post<UploadUrlResponse[]>(`/reports/${reportId}/files/upload-url`, files),

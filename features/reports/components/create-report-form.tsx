@@ -92,7 +92,9 @@ export function CreateReportForm() {
   const isSubmitting = isPending || uploadingAttachments;
 
   function onSubmit(data: CreateReportSchema) {
-    mutate(data);
+    // consent is client-only, not sent to the API
+    const { consent, ...payload } = data;
+    mutate(payload);
   }
 
   function handleSubmitAnother() {
@@ -296,6 +298,20 @@ export function CreateReportForm() {
       >
         <ReportAttachments key={attachmentsKey} ref={attachmentsRef} />
       </FormSection>
+
+      <div className="py-6">
+        <label className="flex cursor-pointer items-start gap-2.5 text-sm text-zinc-600">
+          <input
+            type="checkbox"
+            {...register("consent")}
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
+          />
+          <span className="leading-5">
+            I consent to this data being used to calculate price recommendations for other users.
+          </span>
+        </label>
+        {errors.consent && <p className={cn(errorClass, "ml-[1.625rem]")}>{errors.consent.message}</p>}
+      </div>
 
       <div className="flex items-center justify-between py-6">
         <div>{errors.root && <p className={errorClass}>{errors.root.message}</p>}</div>
