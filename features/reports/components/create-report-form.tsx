@@ -355,12 +355,12 @@ export function CreateReportForm() {
             </Button>
           ) : (
             <Link href="/dashboard/reports">
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" size="md">
                 Cancel
               </Button>
             </Link>
           )}
-          <Button type="submit" variant="dark" disabled={isSubmitting}>
+          <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
             {isPending ? "Submitting…" : uploadingAttachments ? "Uploading attachments…" : "Submit report"}
           </Button>
         </div>
