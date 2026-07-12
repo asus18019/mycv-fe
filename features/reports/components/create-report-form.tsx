@@ -92,7 +92,7 @@ export function CreateReportForm() {
   const isSubmitting = isPending || uploadingAttachments;
 
   function onSubmit(data: CreateReportSchema) {
-    // consent is client-only, not sent to the API
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- consent is client-only, not sent to the API
     const { consent, ...payload } = data;
     mutate(payload);
   }
@@ -156,8 +156,9 @@ export function CreateReportForm() {
       >
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Make</label>
+            <label htmlFor="make" className={labelClass}>Make</label>
             <input
+              id="make"
               type="text"
               placeholder="Toyota"
               {...register("make")}
@@ -166,8 +167,9 @@ export function CreateReportForm() {
             {errors.make && <p className={errorClass}>{errors.make.message}</p>}
           </div>
           <div>
-            <label className={labelClass}>Model</label>
+            <label htmlFor="model" className={labelClass}>Model</label>
             <input
+              id="model"
               type="text"
               placeholder="Camry"
               {...register("model")}
@@ -178,8 +180,9 @@ export function CreateReportForm() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Year</label>
+            <label htmlFor="year" className={labelClass}>Year</label>
             <input
+              id="year"
               type="number"
               placeholder="2019"
               {...register("year", { valueAsNumber: true })}
@@ -188,13 +191,14 @@ export function CreateReportForm() {
             {errors.year && <p className={errorClass}>{errors.year.message}</p>}
           </div>
           <div>
-            <label className={labelClass}>Mileage</label>
+            <label htmlFor="mileage" className={labelClass}>Mileage</label>
             <Controller
               control={control}
               name="mileage"
               render={({ field }) => (
                 <div className="relative">
                   <input
+                    id="mileage"
                     type="text"
                     inputMode="numeric"
                     placeholder="85,000"
@@ -219,7 +223,7 @@ export function CreateReportForm() {
         description="How much the car sold for."
       >
         <div>
-          <label className={labelClass}>Sale price</label>
+          <label htmlFor="price" className={labelClass}>Sale price</label>
           <Controller
             control={control}
             name="price"
@@ -229,6 +233,7 @@ export function CreateReportForm() {
                   $
                 </span>
                 <input
+                  id="price"
                   type="text"
                   inputMode="numeric"
                   placeholder="18,400"
@@ -267,8 +272,9 @@ export function CreateReportForm() {
         {!mapExpanded && locationPicker}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <label className="text-xs text-zinc-400">Lat</label>
+            <label htmlFor="lat" className="text-xs text-zinc-400">Lat</label>
             <input
+              id="lat"
               type="number"
               step="any"
               placeholder="30.2672"
@@ -277,8 +283,9 @@ export function CreateReportForm() {
             />
           </div>
           <div className="flex items-center gap-1.5">
-            <label className="text-xs text-zinc-400">Lng</label>
+            <label htmlFor="lng" className="text-xs text-zinc-400">Lng</label>
             <input
+              id="lng"
               type="number"
               step="any"
               placeholder="-97.7431"
@@ -304,13 +311,13 @@ export function CreateReportForm() {
           <input
             type="checkbox"
             {...register("consent")}
-            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
+            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
           />
           <span className="leading-5">
             I consent to this data being used to calculate price recommendations for other users.
           </span>
         </label>
-        {errors.consent && <p className={cn(errorClass, "ml-[1.625rem]")}>{errors.consent.message}</p>}
+        {errors.consent && <p className={cn(errorClass, "ml-6.5")}>{errors.consent.message}</p>}
       </div>
 
       <div className="flex items-center justify-between py-6">
