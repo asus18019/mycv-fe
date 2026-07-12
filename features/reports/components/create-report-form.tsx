@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { reportsApi } from "@/features/reports/api/reports.api";
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatDigits, parseDigits } from "@/lib/format";
+import { LocationPicker } from "@/features/reports/components/location-picker";
 
 const inputClass =
   "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500";
@@ -24,10 +25,12 @@ function FormSection({
   title,
   description,
   children,
+  fullWidthChild,
 }: {
   title: string;
   description: string;
   children: React.ReactNode;
+  fullWidthChild?: React.ReactNode;
 }) {
   return (
     <div className="grid grid-cols-1 gap-x-12 gap-y-4 py-8 md:grid-cols-3">
@@ -36,6 +39,7 @@ function FormSection({
         <p className="mt-1 text-sm text-zinc-500">{description}</p>
       </div>
       <div className="space-y-4 md:col-span-2">{children}</div>
+      {fullWidthChild && <div className="space-y-4 md:col-span-3">{fullWidthChild}</div>}
     </div>
   );
 }
@@ -43,6 +47,7 @@ function FormSection({
 export function CreateReportForm() {
   const router = useRouter();
   const [locating, setLocating] = useState(false);
+  const [mapExpanded, setMapExpanded] = useState(false);
   const {
     register,
     control,
@@ -53,6 +58,8 @@ export function CreateReportForm() {
   } = useForm<CreateReportSchema>({
     resolver: zodResolver(createReportSchema),
   });
+  const lat = useWatch({ control, name: "lat" });
+  const lng = useWatch({ control, name: "lng" });
 
   const { mutate, isPending } = useMutation({
     mutationFn: reportsApi.create,
@@ -76,6 +83,11 @@ export function CreateReportForm() {
     // mutate(data);
   }
 
+  function handleLocationChange(newLat: number, newLng: number) {
+    setValue("lat", newLat, { shouldValidate: true });
+    setValue("lng", newLng, { shouldValidate: true });
+  }
+
   function useCurrentLocation() {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser.");
@@ -94,6 +106,22 @@ export function CreateReportForm() {
       }
     );
   }
+
+  const locationPicker = (
+    <>
+      <LocationPicker
+        lat={lat}
+        lng={lng}
+        onChange={handleLocationChange}
+        expanded={mapExpanded}
+        onToggleExpanded={() => setMapExpanded((v) => !v)}
+      />
+      <p className={hintClass}>
+        Click the map or drag the pin to mark roughly where the sale happened — city-level
+        accuracy is fine, no need to find the exact address.
+      </p>
+    </>
+  );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-zinc-200">
@@ -198,6 +226,7 @@ export function CreateReportForm() {
       <FormSection
         title="Location"
         description="Where the sale took place. Used to tailor recommendations by region."
+        fullWidthChild={mapExpanded && locationPicker}
       >
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-zinc-700">Coordinates</p>
@@ -210,30 +239,32 @@ export function CreateReportForm() {
             {locating ? "Locating…" : "Use current location"}
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Latitude</label>
+        {!mapExpanded && locationPicker}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-zinc-400">Lat</label>
             <input
               type="number"
               step="any"
               placeholder="30.2672"
               {...register("lat", { valueAsNumber: true })}
-              className={inputClass}
+              className="w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400"
             />
-            {errors.lat && <p className={errorClass}>{errors.lat.message}</p>}
           </div>
-          <div>
-            <label className={labelClass}>Longitude</label>
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-zinc-400">Lng</label>
             <input
               type="number"
               step="any"
               placeholder="-97.7431"
               {...register("lng", { valueAsNumber: true })}
-              className={inputClass}
+              className="w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400"
             />
-            {errors.lng && <p className={errorClass}>{errors.lng.message}</p>}
           </div>
         </div>
+        {(errors.lat || errors.lng) && (
+          <p className={errorClass}>{errors.lat?.message ?? errors.lng?.message}</p>
+        )}
       </FormSection>
 
       <div className="flex items-center justify-between py-6">
