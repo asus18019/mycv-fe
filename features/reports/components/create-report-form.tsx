@@ -341,7 +341,7 @@ export function CreateReportForm() {
             placeholder="e.g. single-owner vehicle, sold due to relocation, no accident history"
             aria-invalid={!!errors.additionalInfo}
             {...register("additionalInfo")}
-            className={cn(inputClass, "resize-none")}
+            className={cn(inputClass, "resize-y")}
           />
           {errors.additionalInfo && <p className={errorClass}>{errors.additionalInfo.message}</p>}
         </div>
@@ -355,7 +355,25 @@ export function CreateReportForm() {
             className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
           />
           <span className="leading-5">
-            I consent to this data being used to calculate price recommendations for other users.
+            I agree to the{" "}
+            <Link
+              href="/terms"
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+              className="text-blue-500 underline underline-offset-2 hover:text-blue-600"
+            >
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy"
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+              className="text-blue-500 underline underline-offset-2 hover:text-blue-600"
+            >
+              Privacy Policy
+            </Link>
+            .
           </span>
         </label>
         {errors.consent && <p className={cn(errorClass, "ml-6.5")}>{errors.consent.message}</p>}
