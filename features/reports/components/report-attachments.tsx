@@ -195,6 +195,22 @@ export const ReportAttachments = forwardRef<ReportAttachmentsHandle>(function Re
         });
 
         await uppy.upload();
+
+        const fileIdByKey = new Map(Array.from(targetByFileId, ([fileId, target]) => [target.key, fileId]));
+        const { failed } = await reportsApi.confirmFiles(
+          reportId,
+          Array.from(fileIdByKey.keys())
+        );
+
+        if (failed.length > 0) {
+          for (const key of failed) {
+            const fileId = fileIdByKey.get(key);
+            if (fileId) {
+              uppy.setFileState(fileId, { error: "Upload could not be verified." });
+            }
+          }
+          throw new Error(`${failed.length} file(s) failed verification.`);
+        }
       },
     }),
     [uppy]

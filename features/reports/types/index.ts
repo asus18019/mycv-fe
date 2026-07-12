@@ -23,3 +23,8 @@ export interface UploadUrlResponse {
   key: string;
   uploadUrl: string;
 }
+
+export interface ConfirmFilesResponse {
+  succeeded: string[];
+  failed: string[];
+}
