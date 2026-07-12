@@ -14,6 +14,7 @@ import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatDigits, parseDigits } from "@/lib/format";
 import { LocationPicker } from "@/features/reports/components/location-picker";
+import { ReportAttachments } from "@/features/reports/components/report-attachments";
 
 const inputClass =
   "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500";
@@ -265,6 +266,13 @@ export function CreateReportForm() {
         {(errors.lat || errors.lng) && (
           <p className={errorClass}>{errors.lat?.message ?? errors.lng?.message}</p>
         )}
+      </FormSection>
+
+      <FormSection
+        title="Attachments"
+        description="Optional photos or documents that support the sale price, like a bill of sale or odometer photo."
+      >
+        <ReportAttachments />
       </FormSection>
 
       <div className="flex items-center justify-between py-6">
