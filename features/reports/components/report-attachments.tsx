@@ -149,8 +149,20 @@ function createUppy() {
   });
 }
 
-export const ReportAttachments = forwardRef<ReportAttachmentsHandle>(function ReportAttachments(_props, ref) {
+interface ReportAttachmentsProps {
+  onFileCountChange?: (count: number) => void;
+}
+
+export const ReportAttachments = forwardRef<ReportAttachmentsHandle, ReportAttachmentsProps>(function ReportAttachments(
+  { onFileCountChange },
+  ref
+) {
   const [uppy] = useState(createUppy);
+  const fileCount = useUppyState(uppy, (state) => Object.keys(state.files).length);
+
+  useEffect(() => {
+    onFileCountChange?.(fileCount);
+  }, [fileCount, onFileCountChange]);
 
   useImperativeHandle(
     ref,

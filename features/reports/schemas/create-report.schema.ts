@@ -28,6 +28,9 @@ export const createReportSchema = z.object({
   consent: z
     .boolean()
     .refine((value) => value, "You must consent to data processing to submit a report"),
+  attachmentCount: z
+    .number()
+    .min(1, "Attach at least one photo or document to submit a report"),
 });
 
 export type CreateReportSchema = z.infer<typeof createReportSchema>;

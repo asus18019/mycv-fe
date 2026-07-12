@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,9 +59,10 @@ export function CreateReportForm() {
     setValue,
     setError,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitted },
   } = useForm<CreateReportSchema>({
     resolver: zodResolver(createReportSchema),
+    defaultValues: { attachmentCount: 0 },
   });
   const lat = useWatch({ control, name: "lat" });
   const lng = useWatch({ control, name: "lng" });
@@ -92,8 +93,8 @@ export function CreateReportForm() {
   const isSubmitting = isPending || uploadingAttachments;
 
   function onSubmit(data: CreateReportSchema) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- consent is client-only, not sent to the API
-    const { consent, ...payload } = data;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- client-only, not sent to the API
+    const { consent, attachmentCount, ...payload } = data;
     mutate(payload);
   }
 
@@ -103,6 +104,11 @@ export function CreateReportForm() {
     setAttachmentsKey((key) => key + 1);
     setSubmitted(false);
   }
+
+  const handleFileCountChange = useCallback(
+    (count: number) => setValue("attachmentCount", count, { shouldValidate: isSubmitted }),
+    [setValue, isSubmitted]
+  );
 
   function handleLocationChange(newLat: number, newLng: number) {
     setValue("lat", newLat, { shouldValidate: true });
@@ -297,9 +303,14 @@ export function CreateReportForm() {
 
       <FormSection
         title="Attachments"
-        description="Optional photos or documents that support the sale price, like a bill of sale or odometer photo."
+        description="Add at least one photo or document that supports the sale price, like a bill of sale or odometer photo."
       >
-        <ReportAttachments key={attachmentsKey} ref={attachmentsRef} />
+        <ReportAttachments
+          key={attachmentsKey}
+          ref={attachmentsRef}
+          onFileCountChange={handleFileCountChange}
+        />
+        {errors.attachmentCount && <p className={errorClass}>{errors.attachmentCount.message}</p>}
       </FormSection>
 
       <div className="py-6">
