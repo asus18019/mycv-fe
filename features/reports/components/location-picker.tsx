@@ -2,6 +2,7 @@
 
 import { Maximize2, Minimize2 } from "lucide-react";
 import { APIProvider, Map, Marker, type MapMouseEvent } from "@vis.gl/react-google-maps";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_CENTER = { lat: 39.8283, lng: -98.5795 };
 
@@ -39,7 +40,7 @@ export function LocationPicker({ lat, lng, onChange, expanded, onToggleExpanded 
     <div className="relative">
       <APIProvider apiKey={apiKey}>
         <Map
-          className={expanded ? "h-[32rem] w-full overflow-hidden rounded-md" : "h-64 w-full overflow-hidden rounded-md"}
+          className={cn("w-full overflow-hidden rounded-md", expanded ? "h-128" : "h-64")}
           defaultCenter={position ?? DEFAULT_CENTER}
           defaultZoom={position ? 12 : 4}
           gestureHandling="greedy"

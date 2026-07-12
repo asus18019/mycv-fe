@@ -40,7 +40,7 @@ function FormSection({
         <p className="mt-1 text-sm text-zinc-500">{description}</p>
       </div>
       <div className="space-y-4 md:col-span-2">{children}</div>
-      {fullWidthChild && <div className="space-y-4 md:col-span-3">{fullWidthChild}</div>}
+      {fullWidthChild}
     </div>
   );
 }
@@ -117,8 +117,7 @@ export function CreateReportForm() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setValue("lat", position.coords.latitude, { shouldValidate: true });
-        setValue("lng", position.coords.longitude, { shouldValidate: true });
+        handleLocationChange(position.coords.latitude, position.coords.longitude);
         setLocating(false);
       },
       () => {
@@ -131,22 +130,6 @@ export function CreateReportForm() {
   if (submitted) {
     return <ReportSubmitted onSubmitAnother={handleSubmitAnother} />;
   }
-
-  const locationPicker = (
-    <>
-      <LocationPicker
-        lat={lat}
-        lng={lng}
-        onChange={handleLocationChange}
-        expanded={mapExpanded}
-        onToggleExpanded={() => setMapExpanded((v) => !v)}
-      />
-      <p className={hintClass}>
-        Click the map or drag the pin to mark roughly where the sale happened — city-level
-        accuracy is fine, no need to find the exact address.
-      </p>
-    </>
-  );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-zinc-200">
@@ -256,7 +239,21 @@ export function CreateReportForm() {
       <FormSection
         title="Location"
         description="Where the sale took place. Used to tailor recommendations by region."
-        fullWidthChild={mapExpanded && locationPicker}
+        fullWidthChild={
+          <div className={cn("space-y-4", mapExpanded ? "md:col-span-3" : "md:col-span-2 md:col-start-2")}>
+            <LocationPicker
+                lat={lat}
+                lng={lng}
+                onChange={handleLocationChange}
+                expanded={mapExpanded}
+                onToggleExpanded={() => setMapExpanded((v) => !v)}
+            />
+            <p className={hintClass}>
+              Click the map or drag the pin to mark roughly where the sale happened — city-level
+              accuracy is fine, no need to find the exact address.
+            </p>
+          </div>
+        }
       >
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-zinc-700">Coordinates</p>
@@ -269,7 +266,6 @@ export function CreateReportForm() {
             {locating ? "Locating…" : "Use current location"}
           </button>
         </div>
-        {!mapExpanded && locationPicker}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <label htmlFor="lat" className="text-xs text-zinc-400">Lat</label>
