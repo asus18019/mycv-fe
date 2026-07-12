@@ -1,0 +1,254 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { createReportSchema, type CreateReportSchema } from "@/features/reports/schemas/create-report.schema";
+import { reportsApi } from "@/features/reports/api/reports.api";
+import { ApiError } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { formatDigits, parseDigits } from "@/lib/format";
+
+const inputClass =
+  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500";
+const labelClass = "mb-1.5 block text-sm font-medium text-zinc-700";
+const hintClass = "mt-1.5 text-xs text-zinc-400";
+const errorClass = "mt-1.5 text-xs text-red-500";
+
+function FormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-x-12 gap-y-4 py-8 md:grid-cols-3">
+      <div className="md:col-span-1">
+        <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+        <p className="mt-1 text-sm text-zinc-500">{description}</p>
+      </div>
+      <div className="space-y-4 md:col-span-2">{children}</div>
+    </div>
+  );
+}
+
+export function CreateReportForm() {
+  const router = useRouter();
+  const [locating, setLocating] = useState(false);
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm<CreateReportSchema>({
+    resolver: zodResolver(createReportSchema),
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: reportsApi.create,
+    onSuccess: () => {
+      toast.success("Report submitted for review.");
+      router.push("/dashboard/reports");
+      router.refresh();
+    },
+    onError: (error) => {
+      if (!(error instanceof ApiError)) return;
+      if (error.status.toString().startsWith("4")) {
+        setError("root", {
+          message: "Couldn't submit your report. Please check the details and try again.",
+        });
+      }
+    },
+  });
+
+  function onSubmit(data: CreateReportSchema) {
+    console.log(data);
+    // mutate(data);
+  }
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setValue("lat", position.coords.latitude, { shouldValidate: true });
+        setValue("lng", position.coords.longitude, { shouldValidate: true });
+        setLocating(false);
+      },
+      () => {
+        toast.error("Couldn't get your location.");
+        setLocating(false);
+      }
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-zinc-200">
+      <FormSection
+        title="Vehicle details"
+        description="Identify the car that was sold."
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Make</label>
+            <input
+              type="text"
+              placeholder="Toyota"
+              {...register("make")}
+              className={inputClass}
+            />
+            {errors.make && <p className={errorClass}>{errors.make.message}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>Model</label>
+            <input
+              type="text"
+              placeholder="Camry"
+              {...register("model")}
+              className={inputClass}
+            />
+            {errors.model && <p className={errorClass}>{errors.model.message}</p>}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Year</label>
+            <input
+              type="number"
+              placeholder="2019"
+              {...register("year", { valueAsNumber: true })}
+              className={inputClass}
+            />
+            {errors.year && <p className={errorClass}>{errors.year.message}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>Mileage</label>
+            <Controller
+              control={control}
+              name="mileage"
+              render={({ field }) => (
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="85,000"
+                    value={formatDigits(field.value)}
+                    onChange={(e) => field.onChange(parseDigits(e.target.value))}
+                    onBlur={field.onBlur}
+                    className={cn(inputClass, "pr-10")}
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-zinc-400">
+                    mi
+                  </span>
+                </div>
+              )}
+            />
+            {errors.mileage && <p className={errorClass}>{errors.mileage.message}</p>}
+          </div>
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Sale details"
+        description="How much the car sold for."
+      >
+        <div>
+          <label className={labelClass}>Sale price</label>
+          <Controller
+            control={control}
+            name="price"
+            render={({ field }) => (
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-zinc-400">
+                  $
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="18,400"
+                  value={formatDigits(field.value)}
+                  onChange={(e) => field.onChange(parseDigits(e.target.value))}
+                  onBlur={field.onBlur}
+                  className={cn(inputClass, "pl-6")}
+                />
+              </div>
+            )}
+          />
+          {errors.price ? (
+            <p className={errorClass}>{errors.price.message}</p>
+          ) : (
+            <p className={hintClass}>The final price the car sold for, in USD.</p>
+          )}
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Location"
+        description="Where the sale took place. Used to tailor recommendations by region."
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-zinc-700">Coordinates</p>
+          <button
+            type="button"
+            onClick={useCurrentLocation}
+            disabled={locating}
+            className="text-xs font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-50"
+          >
+            {locating ? "Locating…" : "Use current location"}
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Latitude</label>
+            <input
+              type="number"
+              step="any"
+              placeholder="30.2672"
+              {...register("lat", { valueAsNumber: true })}
+              className={inputClass}
+            />
+            {errors.lat && <p className={errorClass}>{errors.lat.message}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>Longitude</label>
+            <input
+              type="number"
+              step="any"
+              placeholder="-97.7431"
+              {...register("lng", { valueAsNumber: true })}
+              className={inputClass}
+            />
+            {errors.lng && <p className={errorClass}>{errors.lng.message}</p>}
+          </div>
+        </div>
+      </FormSection>
+
+      <div className="flex items-center justify-between py-6">
+        <div>{errors.root && <p className={errorClass}>{errors.root.message}</p>}</div>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/reports">
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </Link>
+          <Button type="submit" variant="dark" disabled={isPending}>
+            {isPending ? "Submitting…" : "Submit report"}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
