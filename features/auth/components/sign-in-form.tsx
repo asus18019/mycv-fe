@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { signInSchema, type SignInSchema } from "@/features/auth/schemas/sign-in.schema";
 import { authApi } from "@/features/auth/api/auth.api";
 import { ApiError } from "@/lib/api";
@@ -40,11 +41,11 @@ export function SignInForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-sm font-medium text-zinc-700">Email</label>
-        <input
+        <Input
           type="email"
           placeholder="you@example.com"
+          aria-invalid={!!errors.email}
           {...register("email")}
-          className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
         />
         {errors.email && (
           <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
@@ -52,11 +53,11 @@ export function SignInForm() {
       </div>
       <div>
         <label className="mb-1.5 block text-sm font-medium text-zinc-700">Password</label>
-        <input
+        <Input
           type="password"
           placeholder="••••••••"
+          aria-invalid={!!errors.password}
           {...register("password")}
-          className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
         />
         {errors.password && (
           <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>

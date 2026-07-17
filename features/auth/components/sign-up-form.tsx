@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { GoogleSignInButton } from "@/features/auth/components/google-sign-in-button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,11 +40,11 @@ export function SignUpForm() {
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div>
         <label className="mb-1.5 block text-sm font-medium text-zinc-700">Email</label>
-        <input
+        <Input
           type="email"
           placeholder="you@example.com"
+          aria-invalid={!!errors.email}
           {...register("email")}
-          className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
         />
         {errors.email && (
             <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
@@ -51,11 +52,11 @@ export function SignUpForm() {
       </div>
       <div>
         <label className="mb-1.5 block text-sm font-medium text-zinc-700">Password</label>
-        <input
+        <Input
           type="password"
           placeholder="••••••••"
+          aria-invalid={!!errors.password}
           {...register("password")}
-          className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
         />
         {errors.password && (
             <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
@@ -63,11 +64,11 @@ export function SignUpForm() {
       </div>
       <div>
         <label className="mb-1.5 block text-sm font-medium text-zinc-700">Confirm password</label>
-        <input
+        <Input
             type="password"
             placeholder="••••••••"
+            aria-invalid={!!errors.confirmPassword}
             {...register("confirmPassword")}
-            className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm outline-none focus:border-zinc-400"
         />
         {errors.confirmPassword && (
             <p className="mt-1 text-xs text-red-500">{errors.confirmPassword.message}</p>

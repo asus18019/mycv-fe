@@ -161,6 +161,7 @@ export function ReportsTable({ reports, total, unfilteredTotal }: ReportsTablePr
           <Input
             placeholder="Find your report..."
             defaultValue={searchValue}
+            size="sm"
             onChange={(event) => syncQueryField({ search: event.target.value, page: "1" }, true)}
             onKeyDown={(event) => {
               const currentValue = event.currentTarget.value;
@@ -168,7 +169,7 @@ export function ReportsTable({ reports, total, unfilteredTotal }: ReportsTablePr
                 syncQueryField({ search: currentValue, page: "1" }, false)
               }
             }}
-            className="max-w-sm"
+            className="max-w-sm text-sm"
           />
           <Link
             href="/reports/submit"

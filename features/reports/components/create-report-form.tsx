@@ -7,6 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createReportSchema, type CreateReportSchema } from "@/features/reports/schemas/create-report.schema";
 import { reportsApi } from "@/features/reports/api/reports.api";
 import { ApiError } from "@/lib/api";
@@ -16,8 +19,6 @@ import { LocationPicker } from "@/features/reports/components/location-picker";
 import { ReportAttachments, type ReportAttachmentsHandle } from "@/features/reports/components/report-attachments";
 import { ReportSubmitted } from "@/features/reports/components/report-submitted";
 
-const invalidBorderClass = "aria-invalid:border-red-400 aria-invalid:focus:border-red-500";
-const inputClass = `w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 ${invalidBorderClass}`;
 const labelClass = "mb-1.5 block text-sm font-medium text-zinc-700";
 const hintClass = "mt-1.5 text-xs text-zinc-400";
 const errorClass = "mt-1.5 text-xs text-red-500";
@@ -146,25 +147,23 @@ export function CreateReportForm() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="make" className={labelClass}>Make</label>
-            <input
+            <Input
               id="make"
               type="text"
               placeholder="Toyota"
               aria-invalid={!!errors.make}
               {...register("make")}
-              className={inputClass}
             />
             {errors.make && <p className={errorClass}>{errors.make.message}</p>}
           </div>
           <div>
             <label htmlFor="model" className={labelClass}>Model</label>
-            <input
+            <Input
               id="model"
               type="text"
               placeholder="Camry"
               aria-invalid={!!errors.model}
               {...register("model")}
-              className={inputClass}
             />
             {errors.model && <p className={errorClass}>{errors.model.message}</p>}
           </div>
@@ -172,13 +171,12 @@ export function CreateReportForm() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="year" className={labelClass}>Year</label>
-            <input
+            <Input
               id="year"
               type="number"
               placeholder="2019"
               aria-invalid={!!errors.year}
               {...register("year", { valueAsNumber: true })}
-              className={inputClass}
             />
             {errors.year && <p className={errorClass}>{errors.year.message}</p>}
           </div>
@@ -189,7 +187,7 @@ export function CreateReportForm() {
               name="mileage"
               render={({ field }) => (
                 <div className="relative">
-                  <input
+                  <Input
                     id="mileage"
                     type="text"
                     inputMode="numeric"
@@ -198,7 +196,7 @@ export function CreateReportForm() {
                     value={formatDigits(field.value)}
                     onChange={(e) => field.onChange(parseDigits(e.target.value))}
                     onBlur={field.onBlur}
-                    className={cn(inputClass, "pr-10")}
+                    className="pr-10"
                   />
                   <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-zinc-400">
                     mi
@@ -225,7 +223,7 @@ export function CreateReportForm() {
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-zinc-400">
                   $
                 </span>
-                <input
+                <Input
                   id="price"
                   type="text"
                   inputMode="numeric"
@@ -234,7 +232,7 @@ export function CreateReportForm() {
                   value={formatDigits(field.value)}
                   onChange={(e) => field.onChange(parseDigits(e.target.value))}
                   onBlur={field.onBlur}
-                  className={cn(inputClass, "pl-6")}
+                  className="pl-6"
                 />
               </div>
             )}
@@ -280,32 +278,28 @@ export function CreateReportForm() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <label htmlFor="lat" className="text-xs text-zinc-400">Lat</label>
-            <input
+            <Input
               id="lat"
               type="number"
               step="any"
+              size="sm"
               placeholder="30.2672"
               aria-invalid={!!errors.lat}
               {...register("lat", { valueAsNumber: true })}
-              className={cn(
-                "w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400",
-                invalidBorderClass
-              )}
+              className="w-28"
             />
           </div>
           <div className="flex items-center gap-1.5">
             <label htmlFor="lng" className="text-xs text-zinc-400">Lng</label>
-            <input
+            <Input
               id="lng"
               type="number"
               step="any"
+              size="sm"
               placeholder="-97.7431"
               aria-invalid={!!errors.lng}
               {...register("lng", { valueAsNumber: true })}
-              className={cn(
-                "w-28 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-zinc-400",
-                invalidBorderClass
-              )}
+              className="w-28"
             />
           </div>
         </div>
@@ -335,13 +329,12 @@ export function CreateReportForm() {
           <label htmlFor="additionalInfo" className={labelClass}>
             Additional information
           </label>
-          <textarea
+          <Textarea
             id="additionalInfo"
             rows={4}
             placeholder="e.g. single-owner vehicle, sold due to relocation, no accident history"
             aria-invalid={!!errors.additionalInfo}
             {...register("additionalInfo")}
-            className={cn(inputClass, "resize-y")}
           />
           {errors.additionalInfo && <p className={errorClass}>{errors.additionalInfo.message}</p>}
         </div>
@@ -349,10 +342,18 @@ export function CreateReportForm() {
 
       <div className="py-6">
         <label className="flex cursor-pointer items-start gap-2.5 text-sm text-zinc-600">
-          <input
-            type="checkbox"
-            {...register("consent")}
-            className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-zinc-300 accent-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
+          <Controller
+            control={control}
+            name="consent"
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value ?? false}
+                onCheckedChange={field.onChange}
+                onBlur={field.onBlur}
+                aria-invalid={!!errors.consent}
+                className="mt-0.5"
+              />
+            )}
           />
           <span className="leading-5">
             I agree to the{" "}
