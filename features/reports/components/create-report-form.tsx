@@ -63,7 +63,7 @@ export function CreateReportForm() {
     formState: { errors, isSubmitted },
   } = useForm<CreateReportSchema>({
     resolver: zodResolver(createReportSchema),
-    defaultValues: { attachmentCount: 0 },
+    defaultValues: { attachmentCount: 0, consent: false },
   });
   const lat = useWatch({ control, name: "lat" });
   const lng = useWatch({ control, name: "lng" });
